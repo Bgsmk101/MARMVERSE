@@ -18,7 +18,7 @@ export default function HomePage() {
 
           <div className="hero-copy-block">
             <p className="eyebrow">MARMVERSE / новая мармеладная вселенная</p>
-            <h1>Мармелад.<span>С характером.</span></h1>
+            <h1>Мармелад.<span>С&nbsp;характером.</span></h1>
             <p className="hero-lead">Не один вкус «для всех», а пять разных настроений: кислые, мягкие, фруктовые, хрустящие и совсем нежные.</p>
             <div className="hero-actions">
               <Link className="hero-main-link" href="/products/"><span>Исследовать<br />все вкусы</span><b><ArrowIcon /></b></Link>
@@ -32,19 +32,6 @@ export default function HomePage() {
           <span>Пять разных текстур</span>
           <span>50 / 100 / 150 г</span>
           <small>Листай и выбирай настроение</small>
-        </div>
-      </section>
-
-      <section className="flavor-index" aria-label="Карта вкусов">
-        <div className="flavor-index-title"><span>Карта вкусов</span><small>01—05</small></div>
-        <div className="flavor-index-grid">
-          {products.map((product) => (
-            <Link href={`/products/${product.slug}/`} key={product.slug} style={{ "--flavor-color": product.primary } as React.CSSProperties}>
-              <span>{product.number}</span>
-              <strong>{product.name}</strong>
-              <small>{product.category}</small>
-            </Link>
-          ))}
         </div>
       </section>
 

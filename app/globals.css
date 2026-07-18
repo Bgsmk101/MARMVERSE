@@ -3613,7 +3613,14 @@ body.menu-open .site-header {
 
 .hero-copy-block h1 span {
   display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 0.16em;
   color: var(--pink);
+  font-size: 0.72em;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
 }
 
 .hero-lead {
@@ -3791,90 +3798,6 @@ body.menu-open .site-header {
   text-transform: uppercase;
 }
 
-/* Static flavor index replaces the repeated marquee pattern */
-.flavor-index {
-  width: var(--frame);
-  margin: 0 auto;
-  padding: 2.5rem 0 3rem;
-}
-
-.flavor-index-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: 1.2rem;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.flavor-index-title small {
-  color: var(--muted);
-}
-
-.flavor-index-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.flavor-index-grid a {
-  position: relative;
-  min-height: 8.5rem;
-  display: grid;
-  align-content: end;
-  gap: 0.28rem;
-  padding: 1.3rem 1.1rem;
-  border-right: 1px solid var(--line);
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.flavor-index-grid a:first-child {
-  border-left: 1px solid var(--line);
-}
-
-.flavor-index-grid a::before {
-  content: "";
-  position: absolute;
-  top: 1.2rem;
-  left: 1.1rem;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 50%;
-  background: var(--flavor-color);
-  box-shadow: 0 0 0 0.3rem color-mix(in srgb, var(--flavor-color) 18%, transparent);
-}
-
-.flavor-index-grid a > span {
-  color: var(--muted);
-  font-size: 0.58rem;
-  font-weight: 900;
-}
-
-.flavor-index-grid a strong {
-  font-size: clamp(1rem, 1.5vw, 1.35rem);
-  line-height: 1;
-}
-
-.flavor-index-grid a small {
-  color: var(--muted);
-  font-size: 0.58rem;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.flavor-index-grid a:hover {
-  color: #fff;
-  background: var(--ink);
-}
-
-.flavor-index-grid a:hover > span,
-.flavor-index-grid a:hover small {
-  color: rgba(255, 255, 255, 0.65);
-}
-
 /* A less templated catalog rhythm */
 .catalog-product:first-child,
 .catalog-product:last-child {
@@ -4021,21 +3944,6 @@ body.menu-open .site-header {
     margin-left: 0;
   }
 
-  .flavor-index-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .flavor-index-grid a,
-  .flavor-index-grid a:first-child {
-    border: 0;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .flavor-index-grid a:nth-child(odd) {
-    border-left: 1px solid var(--line);
-  }
-
   .catalog-product:first-child,
   .catalog-product:last-child {
     grid-column: auto;
@@ -4165,38 +4073,6 @@ body.menu-open .site-header {
 
   .hero-floor > span:nth-child(3) {
     grid-column: 1 / -1;
-  }
-
-  .flavor-index {
-    padding: 1.5rem 0 2rem;
-  }
-
-  .flavor-index-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .flavor-index-grid a,
-  .flavor-index-grid a:first-child,
-  .flavor-index-grid a:nth-child(odd) {
-    min-height: 5.5rem;
-    grid-template-columns: 2rem minmax(0, 1fr) auto;
-    align-items: center;
-    align-content: center;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-  }
-
-  .flavor-index-grid a::before {
-    top: 50%;
-    left: auto;
-    right: 1rem;
-    transform: translateY(-50%);
-  }
-
-  .flavor-index-grid a small {
-    padding-right: 2.25rem;
-    text-align: right;
   }
 
   .pack-print-flavor {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { ArrowIcon } from "./icons";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
@@ -20,7 +21,7 @@ export function ContactForm() {
       <label><span>Телефон или e-mail</span><input name="contact" required placeholder="Как с вами связаться" /></label>
       <label className="form-wide"><span>Что нужно</span><select name="request" defaultValue="retail"><option value="retail">Поставка в магазин</option><option value="network">Федеральная сеть</option><option value="distributor">Дистрибуция</option><option value="collab">Коллаборация</option></select></label>
       <label className="form-wide"><span>Комментарий</span><textarea name="message" rows={4} placeholder="Город, количество точек, желаемый объём" /></label>
-      <button className="submit-button" type="submit"><span>Отправить заявку</span><b>↗</b></button>
+      <button className="submit-button" type="submit"><span>Отправить заявку</span><ArrowIcon /></button>
     </form>
   );
 }

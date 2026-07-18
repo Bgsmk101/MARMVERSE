@@ -1,4 +1,6 @@
+import Image from "next/image";
 import type { CSSProperties } from "react";
+import { asset } from "@/lib/assets";
 import type { Product } from "@/lib/products";
 
 type StyleVars = CSSProperties & {
@@ -7,27 +9,6 @@ type StyleVars = CSSProperties & {
   "--product-ink"?: string;
   "--pack-scale"?: number;
 };
-
-function Candy({ shape, index }: { shape: Product["shape"]; index: number }) {
-  if (shape === "worm") {
-    return <span className={`candy candy-worm candy-${index}`}><i /><b /><i /></span>;
-  }
-
-  if (shape === "ball") {
-    return <span className={`candy candy-ball candy-${index}`} />;
-  }
-
-  if (shape === "animal") {
-    return <span className={`candy candy-animal candy-${index}`}><i /><i /><b /></span>;
-  }
-
-  if (shape === "fruit") {
-    return <span className={`candy candy-fruit candy-${index}`}><i /></span>;
-  }
-
-  const letters = ["A", "Б", "В", "М", "Я"];
-  return <span className={`candy candy-letter candy-${index}`}>{letters[index % letters.length]}</span>;
-}
 
 export function ProductPack({
   product,
@@ -38,7 +19,7 @@ export function ProductPack({
   weight?: number;
   compact?: boolean;
 }) {
-  const scale = weight === 50 ? 0.84 : weight === 150 ? 1.12 : 1;
+  const scale = weight === 50 ? 0.9 : weight === 150 ? 1.08 : 1;
   const style: StyleVars = {
     "--product-primary": product.primary,
     "--product-secondary": product.secondary,
@@ -47,23 +28,33 @@ export function ProductPack({
   };
 
   return (
-    <div className={`pack-stage ${compact ? "pack-stage-compact" : ""}`} style={style} aria-label={`${product.displayName}, упаковка ${weight} грамм`}>
-      <div className="pack-shadow" />
+    <div
+      className={`pack-stage ${compact ? "pack-stage-compact" : ""}`}
+      style={style}
+      aria-label={`${product.displayName}, упаковка ${weight} грамм`}
+    >
+      <div className="pack-shadow" aria-hidden="true" />
       <div className="gummy-pack">
-        <div className="pack-seal"><span /><span /><span /><span /><span /><span /></div>
-        <div className="pack-highlight" />
-        <div className="pack-brand">MARM<br /><b>VERSE</b></div>
-        <div className="pack-index">FLAVOR WORLD / {product.number}</div>
+        <div className="pack-seal" aria-hidden="true"><span /><span /><span /><span /><span /></div>
+        <div className="pack-topline">
+          <span className="pack-brand">MARMVERSE</span>
+          <span className="pack-index">WORLD {product.number}</span>
+        </div>
         <div className="pack-copy">
           <strong>{product.name}</strong>
           <span>{product.displayName}</span>
         </div>
         <div className="pack-window">
-          {[0, 1, 2, 3, 4].map((index) => <Candy key={index} shape={product.shape} index={index} />)}
+          <Image
+            src={asset(product.image)}
+            alt={`Мармелад ${product.displayName.toLowerCase()}`}
+            fill
+            sizes={compact ? "(max-width: 720px) 66vw, 22rem" : "(max-width: 720px) 86vw, 30rem"}
+          />
         </div>
         <div className="pack-bottom">
           <span>{product.category}</span>
-          <b>{weight} g</b>
+          <b>{weight} г</b>
         </div>
       </div>
     </div>

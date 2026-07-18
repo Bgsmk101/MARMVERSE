@@ -13,6 +13,7 @@ export type Product = {
   secondary: string;
   ink: string;
   glow: string;
+  image: string;
   shape: ProductShape;
   taste: {
     sour: number;
@@ -41,6 +42,7 @@ export const products: Product[] = [
     secondary: "#ff3fa4",
     ink: "#17130f",
     glow: "rgba(215,255,63,.6)",
+    image: "/images/products/wormhole.webp",
     shape: "worm",
     taste: { sour: 100, sweet: 62, soft: 72 },
     notes: ["лайм", "арбуз", "малина", "яблоко"],
@@ -61,6 +63,7 @@ export const products: Product[] = [
     secondary: "#52f6ff",
     ink: "#0d0a22",
     glow: "rgba(82,246,255,.55)",
+    image: "/images/products/sour-orbit.webp",
     shape: "ball",
     taste: { sour: 82, sweet: 70, soft: 58 },
     notes: ["черника", "лимон", "вишня", "манго"],
@@ -81,6 +84,7 @@ export const products: Product[] = [
     secondary: "#ffd93d",
     ink: "#2a1305",
     glow: "rgba(255,122,34,.5)",
+    image: "/images/products/zoo-pop.webp",
     shape: "animal",
     taste: { sour: 12, sweet: 91, soft: 94 },
     notes: ["персик", "клубника", "апельсин", "виноград"],
@@ -101,6 +105,7 @@ export const products: Product[] = [
     secondary: "#4bff8a",
     ink: "#24050e",
     glow: "rgba(75,255,138,.5)",
+    image: "/images/products/fruit-glitch.webp",
     shape: "fruit",
     taste: { sour: 38, sweet: 84, soft: 78 },
     notes: ["клубника-лайм", "яблоко-малина", "апельсин-манго", "виноград-смородина"],
@@ -121,6 +126,7 @@ export const products: Product[] = [
     secondary: "#ff9fd2",
     ink: "#10202d",
     glow: "rgba(119,216,255,.6)",
+    image: "/images/products/abc-soft.webp",
     shape: "letter",
     taste: { sour: 8, sweet: 54, soft: 98 },
     notes: ["яблоко", "груша", "клубника", "банан"],

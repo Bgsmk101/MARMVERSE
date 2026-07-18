@@ -22,6 +22,7 @@ function normalizePath(pathname: string) {
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = normalizePath(usePathname());
+  const isHome = pathname === "/";
 
   useEffect(() => {
     document.body.classList.toggle("menu-open", open);
@@ -41,16 +42,22 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="site-header">
+      <header className={`site-header ${isHome ? "site-header-home" : ""}`}>
         <Link className="logo" href="/" aria-label="MARMVERSE — главная">
-          <span>MARM</span><b>M</b><span>VERSE</span>
+          <span>MARM</span><b><i>M</i></b><span>VERSE</span>
         </Link>
 
         <nav className="desktop-nav" aria-label="Основная навигация">
-          {navigation.map(([href, label]) => (
-            <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}>{label}</Link>
+          {navigation.map(([href, label], index) => (
+            <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}>
+              <small>0{index + 1}</small><span>{label}</span>
+            </Link>
           ))}
         </nav>
+
+        <Link className="header-business" href="/contacts/">
+          <span>Оптовым клиентам</span><ArrowIcon />
+        </Link>
 
         <button
           className="menu-button"
@@ -60,13 +67,13 @@ export function SiteHeader() {
           aria-expanded={open}
           aria-controls="site-menu"
         >
-          <span>{open ? "Закрыть" : "Меню"}</span>
+          <span className="sr-only">{open ? "Закрыть меню" : "Открыть меню"}</span>
           <MenuIcon open={open} />
         </button>
       </header>
 
       <div className={`menu-layer ${open ? "is-open" : ""}`} id="site-menu" aria-hidden={!open}>
-        <div className="menu-brand" aria-hidden="true"><span>MARM</span><span>VERSE</span></div>
+        <div className="menu-orbits" aria-hidden="true"><i /><i /><i /></div>
         <nav aria-label="Меню разделов">
           {navigation.map(([href, label], index) => (
             <Link key={href} href={href} onClick={() => setOpen(false)} className={pathname.startsWith(href) ? "active" : ""}>
@@ -77,8 +84,8 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="menu-caption">
-          <span>Пять вкусовых миров</span>
-          <p>Яркий мармелад с понятным характером, честным составом и собственной визуальной системой.</p>
+          <span>MARMVERSE / 01—05</span>
+          <p>Пять вкусов, три формата и одна мармеладная вселенная.</p>
         </div>
       </div>
     </>

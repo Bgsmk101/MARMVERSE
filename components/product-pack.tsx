@@ -29,33 +29,29 @@ export function ProductPack({
 
   return (
     <div
-      className={`pack-stage ${compact ? "pack-stage-compact" : ""}`}
+      className={`pack-stage pack-${product.slug} ${compact ? "pack-stage-compact" : ""}`}
       style={style}
       aria-label={`${product.displayName}, упаковка ${weight} грамм`}
     >
       <div className="pack-shadow" aria-hidden="true" />
-      <div className="gummy-pack">
-        <div className="pack-seal" aria-hidden="true"><span /><span /><span /><span /><span /></div>
-        <div className="pack-topline">
-          <span className="pack-brand">MARMVERSE</span>
-          <span className="pack-index">WORLD {product.number}</span>
-        </div>
-        <div className="pack-copy">
+      <div className="pack-photo">
+        <Image
+          src={asset(product.packImage)}
+          alt={`Розничная упаковка ${product.displayName.toLowerCase()}`}
+          fill
+          sizes={compact ? "(max-width: 720px) 72vw, 24rem" : "(max-width: 720px) 90vw, 32rem"}
+        />
+
+        <div className="pack-print">
+          <div className="pack-print-top">
+            <span>MARMVERSE</span>
+            <span>{product.number} / 05</span>
+          </div>
           <strong>{product.name}</strong>
-          <span>{product.displayName}</span>
+          <span className="pack-print-flavor">{product.displayName}</span>
         </div>
-        <div className="pack-window">
-          <Image
-            src={asset(product.image)}
-            alt={`Мармелад ${product.displayName.toLowerCase()}`}
-            fill
-            sizes={compact ? "(max-width: 720px) 66vw, 22rem" : "(max-width: 720px) 86vw, 30rem"}
-          />
-        </div>
-        <div className="pack-bottom">
-          <span>{product.category}</span>
-          <b>{weight} г</b>
-        </div>
+
+        <span className="pack-weight">{weight} г</span>
       </div>
     </div>
   );

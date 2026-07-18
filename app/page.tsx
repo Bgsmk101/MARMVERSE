@@ -7,35 +7,44 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero">
+        <div className="hero-space" aria-hidden="true"><i /><i /><i /></div>
         <div className="hero-grid">
-          <div className="hero-copy-block">
-            <p className="eyebrow">Новая мармеладная вселенная</p>
-            <h1>Вкус, который хочется <span>рассмотреть.</span></h1>
-            <p className="hero-lead">Пять самостоятельных миров — от суперкислых червячков до мягких букв. Каждый со своей формой, палитрой и настроением.</p>
-            <div className="hero-actions">
-              <Link className="button button-dark" href="/products/">Выбрать вкус <ArrowIcon /></Link>
-              <Link className="text-link" href="/about/">Познакомиться с брендом</Link>
-            </div>
+          <div className="hero-showcase" aria-label="Линейка упаковок MARMVERSE">
+            <div className="hero-pack-primary"><ProductPack product={products[0]} weight={100} compact /></div>
+            <div className="hero-pack-secondary"><ProductPack product={products[1]} weight={50} compact /></div>
+            <div className="hero-pack-tertiary"><ProductPack product={products[4]} weight={50} compact /></div>
+            <div className="hero-showcase-caption"><span>01—05</span><p>Пять миров.<br />Выбирай свой.</p></div>
           </div>
 
-          <div className="hero-showcase" aria-label="Упаковки MARMVERSE">
-            <div className="hero-pack-primary"><ProductPack product={products[0]} weight={100} compact /></div>
-            <div className="hero-pack-secondary"><ProductPack product={products[3]} weight={50} compact /></div>
-            <div className="hero-flavor-card"><strong>05</strong><span>вкусовых миров</span></div>
+          <div className="hero-copy-block">
+            <p className="eyebrow">MARMVERSE / новая мармеладная вселенная</p>
+            <h1>Мармелад.<span>С характером.</span></h1>
+            <p className="hero-lead">Не один вкус «для всех», а пять разных настроений: кислые, мягкие, фруктовые, хрустящие и совсем нежные.</p>
+            <div className="hero-actions">
+              <Link className="hero-main-link" href="/products/"><span>Исследовать<br />все вкусы</span><b><ArrowIcon /></b></Link>
+              <Link className="hero-story-link" href="/about/">Как устроена вселенная</Link>
+            </div>
           </div>
         </div>
 
-        <div className="hero-stats">
-          <span><b>05</b> вкусов</span>
-          <span><b>03</b> формата</span>
-          <span><b>15</b> позиций</span>
-          <span className="hero-stats-note">Пектиновая основа · яркий фруктовый вкус</span>
+        <div className="hero-floor">
+          <span>Пектиновая основа</span>
+          <span>Пять разных текстур</span>
+          <span>50 / 100 / 150 г</span>
+          <small>Листай и выбирай настроение</small>
         </div>
       </section>
 
-      <section className="ticker-section" aria-label="Список вкусов">
-        <div className="ticker-track">
-          {[...products, ...products].map((product, index) => <span key={`${product.slug}-${index}`}>{product.displayName}<i>•</i></span>)}
+      <section className="flavor-index" aria-label="Карта вкусов">
+        <div className="flavor-index-title"><span>Карта вкусов</span><small>01—05</small></div>
+        <div className="flavor-index-grid">
+          {products.map((product) => (
+            <Link href={`/products/${product.slug}/`} key={product.slug} style={{ "--flavor-color": product.primary } as React.CSSProperties}>
+              <span>{product.number}</span>
+              <strong>{product.name}</strong>
+              <small>{product.category}</small>
+            </Link>
+          ))}
         </div>
       </section>
 

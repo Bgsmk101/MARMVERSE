@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowIcon } from "@/components/icons";
+import { FlavorCarousel } from "@/components/flavor-carousel";
 import { ProductPack } from "@/components/product-pack";
 import { products, weights } from "@/lib/products";
 
@@ -56,19 +57,7 @@ export default function HomePage() {
           <p>У каждого — своя текстура, уровень кислоты и визуальный код. Никаких вкусов-близнецов.</p>
         </header>
 
-        <div className="world-list">
-          {products.map((product, index) => (
-            <article className={`world-card world-card-${index + 1}`} key={product.slug} style={{ "--primary": product.primary, "--secondary": product.secondary, "--ink": product.ink } as React.CSSProperties}>
-              <div className="world-card-copy">
-                <div className="world-card-meta"><span>{product.number}</span><small>{product.category}</small></div>
-                <h3>{product.name}</h3>
-                <p>{product.tagline}</p>
-                <Link href={`/products/${product.slug}/`}>Открыть вкус <ArrowIcon /></Link>
-              </div>
-              <div className="world-card-pack"><ProductPack product={product} weight={index % 3 === 0 ? 50 : index % 3 === 1 ? 100 : 150} compact /></div>
-            </article>
-          ))}
-        </div>
+        <FlavorCarousel />
       </section>
 
       <section className="weight-strip">

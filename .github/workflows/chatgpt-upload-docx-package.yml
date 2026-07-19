@@ -1,0 +1,38 @@
+name: Package temporary Word homework
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  package-docx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Extract DOCX package
+        shell: bash
+        run: |
+          rm -rf /tmp/docx-package
+          mkdir -p /tmp/docx-package
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('Persian_B1_AI_Homework.docx') as archive:
+              archive.extractall('/tmp/docx-package')
+          PY
+
+      - name: Upload package as a Word-compatible ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Persian-B1-AI-Homework-DOCX
+          path: /tmp/docx-package/*
+          include-hidden-files: true
+          compression-level: 6
+          retention-days: 1

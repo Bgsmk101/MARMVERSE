@@ -1,0 +1,253 @@
+name: Generate temporary Word homework
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  generate-docx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependency
+        run: pip install python-docx
+
+      - name: Generate plain Word document
+        if: ${{ hashFiles('Persian_B1_AI_Homework.docx') == '' }}
+        shell: bash
+        run: |
+          cat > /tmp/generate_homework.py <<'PY'
+          from docx import Document
+          from docx.shared import Pt, Cm
+          from docx.enum.text import WD_ALIGN_PARAGRAPH
+          from docx.oxml import OxmlElement
+          from docx.oxml.ns import qn
+
+          OUTPUT = 'Persian_B1_AI_Homework.docx'
+          FONT = 'Arial'
+
+          doc = Document()
+          section = doc.sections[0]
+          section.top_margin = Cm(2)
+          section.bottom_margin = Cm(2)
+          section.left_margin = Cm(2)
+          section.right_margin = Cm(2)
+
+          normal = doc.styles['Normal']
+          normal.font.name = FONT
+          normal.font.size = Pt(14)
+          normal.paragraph_format.space_after = Pt(6)
+          normal.paragraph_format.line_spacing = 1.15
+
+          def set_run_font(run, size=14, bold=False, rtl=False, italic=False):
+              run.font.name = FONT
+              run.font.size = Pt(size)
+              run.bold = bold
+              run.italic = italic
+              rpr = run._element.get_or_add_rPr()
+              rfonts = rpr.find(qn('w:rFonts'))
+              if rfonts is None:
+                  rfonts = OxmlElement('w:rFonts')
+                  rpr.insert(0, rfonts)
+              for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
+                  rfonts.set(qn(f'w:{attr}'), FONT)
+              szcs = rpr.find(qn('w:szCs'))
+              if szcs is None:
+                  szcs = OxmlElement('w:szCs')
+                  rpr.append(szcs)
+              szcs.set(qn('w:val'), str(size * 2))
+              if rtl and rpr.find(qn('w:rtl')) is None:
+                  rpr.append(OxmlElement('w:rtl'))
+
+          def set_bidi(paragraph):
+              ppr = paragraph._p.get_or_add_pPr()
+              if ppr.find(qn('w:bidi')) is None:
+                  ppr.append(OxmlElement('w:bidi'))
+
+          def add_ru(text='', bold=False, size=14, align=WD_ALIGN_PARAGRAPH.LEFT, italic=False, after=6):
+              p = doc.add_paragraph()
+              p.alignment = align
+              p.paragraph_format.space_after = Pt(after)
+              p.paragraph_format.line_spacing = 1.15
+              r = p.add_run(text)
+              set_run_font(r, size=size, bold=bold, italic=italic)
+              return p
+
+          def add_fa(text='', bold=False, size=14, after=6):
+              p = doc.add_paragraph()
+              p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+              p.paragraph_format.space_after = Pt(after)
+              p.paragraph_format.line_spacing = 1.15
+              set_bidi(p)
+              r = p.add_run(text)
+              set_run_font(r, size=size, bold=bold, rtl=True)
+              return p
+
+          def heading(text):
+              p = add_ru(text, bold=True, size=14, after=6)
+              p.paragraph_format.keep_with_next = True
+              return p
+
+          add_ru('Домашнее задание', bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER, after=4)
+          add_fa('هوش مصنوعی؛ دستیار انسان یا جایگزین او؟', bold=True, size=14, after=4)
+          add_ru('Уровень: B1', after=0)
+          add_ru('Грамматическая тема: изафетная конструкция (اضافه)', after=10)
+
+          heading('1. Лексика')
+          add_ru('Составьте по одному полному предложению на персидском языке с каждым словом или выражением:')
+          vocab = [
+              'هوش مصنوعی', 'بازار کار', 'اطلاعات شخصی', 'حریم خصوصی',
+              'فرصت شغلی', 'شغل تکراری', 'قضاوت انسانی', 'استفاده‌ی نادرست',
+              'وابسته شدن به', 'تأثیر گذاشتن بر', 'در وقت صرفه‌جویی کردن',
+              'مسئول بودن در برابر'
+          ]
+          for i, item in enumerate(vocab, 1):
+              add_fa(f'{i}. {item}', after=3)
+
+          heading('2. Вставьте подходящее слово')
+          add_ru('Используйте слова из рамки. Каждое слово употребите один раз:')
+          add_fa('مسئولیت — خلاقیت — اعتماد — وابستگی — پیشرفت — حریم خصوصی — جایگزین — داده‌ها', bold=True)
+          fill = [
+              'هوش مصنوعی با بررسی __________ می‌تواند نتیجه‌ی مناسبی ارائه دهد.',
+              'نباید بدون فکر کردن به تمام پاسخ‌های اینترنت __________ کنیم.',
+              'استفاده‌ی زیاد از تلفن همراه ممکن است باعث __________ شود.',
+              'معلم باید به دانش‌آموزان کمک کند تا __________ خود را حفظ کنند.',
+              'شرکت‌ها باید از __________ کاربران محافظت کنند.',
+              'فناوری با سرعت زیادی در حال __________ است.',
+              'هوش مصنوعی نباید به طور کامل __________ انسان شود.',
+              'انسان باید __________ تصمیم‌های مهم خود را بپذیرد.'
+          ]
+          for i, item in enumerate(fill, 1):
+              add_fa(f'{i}. {item}', after=5)
+
+          heading('3. Постройте изафетные конструкции')
+          add_ru('Расположите слова в правильном порядке и соедините их при помощи изафета. При необходимости добавьте предлог از или بر:')
+          chains = [
+              'آینده / فناوری / جدید',
+              'تصمیم‌ها / مهم / پزشکان',
+              'اطلاعات / شخصی / کاربران / برنامه',
+              'یکی / بزرگ‌ترین / خطرها / هوش مصنوعی',
+              'تأثیر / استفاده / زیاد / فناوری / خلاقیت / انسان',
+              'سرعت / بالا / پردازش / داده‌ها / پزشکی',
+              'فرصت‌ها / شغلی / جدید / جوانان',
+              'استفاده / درست / ابزارها / هوشمند / آموزشی'
+          ]
+          for i, item in enumerate(chains, 1):
+              add_fa(f'{i}. {item}', after=5)
+
+          heading('4. Исправьте ошибки')
+          add_ru('Перепишите предложения правильно. Обратите внимание на порядок слов, изафет и положение местоименных суффиксов:')
+          errors = [
+              'اینِ فناوری زندگی ما را تغییر داده است.',
+              'هوش مصنوعیِ به دانش‌آموزان کمک می‌کند.',
+              'جدید برنامه اطلاعات شخصی کاربران را جمع‌آوری می‌کند.',
+              'بازار کار آینده جوانان تغییر خواهد کرد.',
+              'یکی از مهم‌ترین مزیت هوش مصنوعی سرعت آن است.',
+              'نظرِ منم این است که فناوری مفید است.',
+              'برنامه‌امِ جدید برای یادگیری زبان است.',
+              'انسان تصمیم‌های مهمِ باید خودش بگیرد.'
+          ]
+          for i, item in enumerate(errors, 1):
+              add_fa(f'{i}. {item}', after=5)
+
+          heading('5. Переведите на персидский язык')
+          translations = [
+              'Новые образовательные технологии.',
+              'Будущее рынка труда.',
+              'Конфиденциальность пользователей этой программы.',
+              'Профессиональная ответственность врачей.',
+              'Способность человека принимать решения.',
+              'Неправильное использование личных данных.',
+              'Самое важное преимущество искусственного интеллекта.',
+              'Влияние современных технологий на жизнь молодёжи.'
+          ]
+          for i, item in enumerate(translations, 1):
+              add_ru(f'{i}. {item}', after=5)
+
+          heading('6. Чтение')
+          add_ru('Прочитайте текст и ответьте на вопросы полными предложениями на персидском языке.')
+          add_fa('شغل‌های آینده', bold=True, size=15)
+          reading = [
+              'پیشرفت سریع هوش مصنوعی باعث تغییر بسیاری از شغل‌های امروزی شده است. بعضی از مردم نگران‌اند که ربات‌ها و برنامه‌های هوشمند جای نیروی انسانی را بگیرند. این نگرانی تا حدی منطقی است، زیرا ماشین‌ها می‌توانند بعضی از کارهای تکراری را سریع‌تر و دقیق‌تر از انسان انجام دهند.',
+              'با این حال، کارشناسان معتقدند که هوش مصنوعی فقط باعث از بین رفتن شغل‌ها نمی‌شود، بلکه فرصت‌های شغلی جدیدی نیز ایجاد می‌کند. برای مثال، در آینده به متخصصان طراحی الگوریتم، کارشناسان امنیت اطلاعات و مربیان هوش مصنوعی نیاز بیشتری خواهد بود.',
+              'مهارت‌های انسانی نیز اهمیت خود را از دست نخواهند داد. خلاقیت، توانایی برقراری ارتباط، همدلی و قضاوت انسانی مهارت‌هایی هستند که ماشین‌ها هنوز نمی‌توانند به طور کامل جایگزین آن‌ها شوند. بنابراین، افرادی که در کنار مهارت‌های فنی، توانایی حل مسئله و ارتباط با دیگران را تقویت کنند، شانس بیشتری برای موفقیت در بازار کار آینده خواهند داشت.',
+              'مهم‌ترین وظیفه‌ی مدارس و دانشگاه‌ها این است که دانش‌آموزان را برای تغییرات آینده آماده کنند. هدف آموزش نباید فقط حفظ کردن اطلاعات باشد. دانش‌آموزان باید یاد بگیرند که چگونه سؤال بپرسند، اطلاعات را بررسی کنند و از فناوری به شکل مسئولانه استفاده کنند.'
+          ]
+          for para in reading:
+              add_fa(para, after=8)
+
+          add_ru('Вопросы к тексту:', bold=True)
+          questions = [
+              'چرا بعضی از مردم درباره‌ی آینده‌ی شغلی خود نگران‌اند؟',
+              'ماشین‌ها چه کارهایی را بهتر از انسان انجام می‌دهند؟',
+              'چه فرصت‌های شغلی جدیدی ممکن است به وجود بیاید؟',
+              'کدام مهارت‌های انسانی همچنان مهم خواهند بود؟',
+              'چه افرادی در بازار کار آینده موفق‌تر خواهند بود؟',
+              'وظیفه‌ی مدارس و دانشگاه‌ها چیست؟',
+              'هدف آموزش مدرن چه باید باشد؟',
+              'پنج ساخت اضافه از متن پیدا کنید و آن‌ها را به روسی ترجمه کنید.'
+          ]
+          for i, item in enumerate(questions, 1):
+              add_fa(f'{i}. {item}', after=5)
+
+          heading('7. Письменное задание')
+          add_ru('Напишите текст объёмом 120–150 слов на тему:')
+          add_fa('آیا هوش مصنوعی برای آینده‌ی انسان مفید است یا خطرناک؟', bold=True)
+          add_ru('В работе необходимо:')
+          requirements = [
+              'кратко представить тему;',
+              'назвать не менее двух преимуществ искусственного интеллекта;',
+              'назвать не менее двух возможных рисков;',
+              'привести хотя бы один конкретный пример;',
+              'выразить и объяснить своё мнение;',
+              'сделать вывод;',
+              'использовать не менее восьми изафетных конструкций и подчеркнуть их.'
+          ]
+          for i, item in enumerate(requirements, 1):
+              add_ru(f'{i}. {item}', after=3)
+
+          heading('8. Устное задание')
+          add_ru('Запишите голосовое сообщение продолжительностью 2–3 минуты на тему:')
+          add_fa('من چگونه از هوش مصنوعی استفاده می‌کنم؟', bold=True)
+          add_ru('Расскажите:')
+          oral = [
+              'как часто вы используете искусственный интеллект;',
+              'для каких задач вы его используете;',
+              'чем он вам помогает;',
+              'какие ошибки он иногда делает;',
+              'доверяете ли вы его ответам;',
+              'как, по вашему мнению, следует правильно использовать искусственный интеллект.'
+          ]
+          for i, item in enumerate(oral, 1):
+              add_ru(f'{i}. {item}', after=3)
+          add_ru('Используйте не менее пяти новых слов и пяти изафетных конструкций.', bold=True, after=0)
+
+          doc.save(OUTPUT)
+          PY
+          python /tmp/generate_homework.py
+
+      - name: Commit generated document to temporary branch
+        if: ${{ hashFiles('Persian_B1_AI_Homework.docx') != '' }}
+        shell: bash
+        run: |
+          if git status --porcelain | grep -q 'Persian_B1_AI_Homework.docx'; then
+            git config user.name 'chatgpt-docx-bot'
+            git config user.email 'chatgpt-docx-bot@users.noreply.github.com'
+            git add Persian_B1_AI_Homework.docx
+            git commit -m 'Generate temporary Word homework'
+            git push origin HEAD:${{ github.head_ref }}
+          fi

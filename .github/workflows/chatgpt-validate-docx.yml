@@ -1,0 +1,89 @@
+name: Validate temporary Word homework
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Validate DOCX package and structure
+        shell: bash
+        run: |
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          from lxml import etree
+
+          path = Path('Persian_B1_AI_Homework.docx')
+          assert path.exists() and path.stat().st_size > 10000, 'DOCX missing or unexpectedly small'
+          with zipfile.ZipFile(path) as z:
+              assert z.testzip() is None, 'Corrupt ZIP member in DOCX'
+              required = {'[Content_Types].xml', '_rels/.rels', 'word/document.xml', 'word/styles.xml'}
+              assert required.issubset(set(z.namelist())), 'Missing required DOCX package files'
+              xml = z.read('word/document.xml')
+              root = etree.fromstring(xml)
+              ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+              paragraphs = root.xpath('.//w:p', namespaces=ns)
+              tables = root.xpath('.//w:tbl', namespaces=ns)
+              drawings = root.xpath('.//w:drawing|.//w:pict', namespaces=ns)
+              text = ''.join(root.xpath('.//w:t/text()', namespaces=ns))
+              assert 'Домашнее задание' in text
+              assert 'هوش مصنوعی' in text
+              assert 'Ключи' not in text and 'Ответы' not in text
+              assert len(paragraphs) > 60
+              assert len(tables) == 0, 'Document should not contain tables'
+              assert len(drawings) == 0, 'Document should not contain graphics'
+              print(f'DOCX_OK size={path.stat().st_size} paragraphs={len(paragraphs)} tables={len(tables)} drawings={len(drawings)}')
+          PY
+
+      - name: Install rendering tools
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-writer poppler-utils imagemagick fonts-liberation
+
+      - name: Render DOCX and inspect pages
+        shell: bash
+        run: |
+          mkdir -p /tmp/rendered /tmp/png
+          libreoffice --headless --convert-to pdf --outdir /tmp/rendered Persian_B1_AI_Homework.docx
+          test -s /tmp/rendered/Persian_B1_AI_Homework.pdf
+          pdfinfo /tmp/rendered/Persian_B1_AI_Homework.pdf | grep -E 'Pages|Page size|File size'
+          pdftotext -layout /tmp/rendered/Persian_B1_AI_Homework.pdf /tmp/rendered/text.txt
+          grep -F 'Домашнее задание' /tmp/rendered/text.txt
+          grep -F 'هوش مصنوعی' /tmp/rendered/text.txt
+          pdftoppm -png -r 120 /tmp/rendered/Persian_B1_AI_Homework.pdf /tmp/png/page >/dev/null 2>&1
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageChops
+          pages = sorted(Path('/tmp/png').glob('page-*.png'))
+          assert pages, 'No rendered page images'
+          print(f'RENDERED_PAGES={len(pages)}')
+          for page in pages:
+              im = Image.open(page).convert('RGB')
+              bg = Image.new('RGB', im.size, 'white')
+              diff = ImageChops.difference(im, bg)
+              bbox = diff.getbbox()
+              assert bbox is not None, f'{page.name} is blank'
+              left, top, right, bottom = bbox
+              margin = min(left, top, im.width-right, im.height-bottom)
+              assert left > 15 and top > 15 and right < im.width-15 and bottom < im.height-15, f'Content too close to page edge on {page.name}: {bbox} size={im.size}'
+              print(f'{page.name}: size={im.size}, content_bbox={bbox}, minimum_edge_gap={margin}')
+          PY
+        env:
+          PYTHONUNBUFFERED: '1'
+
+      - name: Install Pillow for image inspection
+        if: failure()
+        run: true

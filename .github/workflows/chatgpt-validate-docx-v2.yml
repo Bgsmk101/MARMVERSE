@@ -1,0 +1,90 @@
+name: Validate temporary Word homework v2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install Python image dependency
+        run: python -m pip install pillow
+
+      - name: Validate DOCX package and structure
+        shell: bash
+        run: |
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          path = Path('Persian_B1_AI_Homework.docx')
+          assert path.exists() and path.stat().st_size > 10000, 'DOCX missing or unexpectedly small'
+          ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+          with zipfile.ZipFile(path) as z:
+              assert z.testzip() is None, 'Corrupt ZIP member in DOCX'
+              names = set(z.namelist())
+              required = {'[Content_Types].xml', '_rels/.rels', 'word/document.xml', 'word/styles.xml'}
+              assert required.issubset(names), f'Missing required DOCX package files: {required - names}'
+              root = ET.fromstring(z.read('word/document.xml'))
+              text = ''.join((node.text or '') for node in root.findall('.//w:t', ns))
+              paragraphs = root.findall('.//w:p', ns)
+              tables = root.findall('.//w:tbl', ns)
+              drawings = root.findall('.//w:drawing', ns)
+              picts = root.findall('.//w:pict', ns)
+              assert 'Домашнее задание' in text
+              assert 'هوش مصنوعی' in text
+              assert 'Ключи' not in text and 'Ответы' not in text
+              assert len(paragraphs) > 60, f'Too few paragraphs: {len(paragraphs)}'
+              assert len(tables) == 0, 'Document should not contain tables'
+              assert len(drawings) == 0 and len(picts) == 0, 'Document should not contain graphics'
+              print(f'DOCX_OK size={path.stat().st_size} paragraphs={len(paragraphs)} tables={len(tables)} drawings={len(drawings) + len(picts)}')
+          PY
+
+      - name: Install rendering tools and fonts
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-writer poppler-utils fonts-liberation2 fonts-noto-core
+          fc-match Arial
+          fc-match 'Arial:lang=fa'
+
+      - name: Render DOCX and inspect every page
+        shell: bash
+        run: |
+          mkdir -p /tmp/rendered /tmp/png
+          libreoffice --headless --convert-to pdf --outdir /tmp/rendered Persian_B1_AI_Homework.docx
+          test -s /tmp/rendered/Persian_B1_AI_Homework.pdf
+          pdfinfo /tmp/rendered/Persian_B1_AI_Homework.pdf | grep -E 'Pages|Page size|File size'
+          pdffonts /tmp/rendered/Persian_B1_AI_Homework.pdf
+          pdftotext -layout /tmp/rendered/Persian_B1_AI_Homework.pdf /tmp/rendered/text.txt
+          grep -F 'Домашнее задание' /tmp/rendered/text.txt
+          grep -F 'هوش مصنوعی' /tmp/rendered/text.txt
+          pdftoppm -png -r 120 /tmp/rendered/Persian_B1_AI_Homework.pdf /tmp/png/page >/dev/null 2>&1
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageChops
+
+          pages = sorted(Path('/tmp/png').glob('page-*.png'))
+          assert pages, 'No rendered page images'
+          print(f'RENDERED_PAGES={len(pages)}')
+          for page in pages:
+              im = Image.open(page).convert('RGB')
+              bg = Image.new('RGB', im.size, 'white')
+              bbox = ImageChops.difference(im, bg).getbbox()
+              assert bbox is not None, f'{page.name} is blank'
+              left, top, right, bottom = bbox
+              assert left > 15 and top > 15 and right < im.width - 15 and bottom < im.height - 15, \
+                  f'Content too close to page edge on {page.name}: bbox={bbox}, size={im.size}'
+              print(f'{page.name}: size={im.size}, content_bbox={bbox}')
+          PY
